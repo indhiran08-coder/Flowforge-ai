@@ -1,9 +1,22 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GitBranch, History, Zap } from "lucide-react";
+import { syncUser } from "@/features/auth/sync-user";
 
 export default async function DashboardPage() {
+  const { userId } = await auth();
   const user = await currentUser();
+
+  // Sync user to database on every dashboard visit
+  if (userId && user) {
+    await syncUser({
+      clerkId: user.id,
+      email: user.emailAddresses[0]?.emailAddress ?? "",
+      firstName: user.firstName,
+      lastName: user.lastName,
+      imageUrl: user.imageUrl,
+    });
+  }
 
   const stats = [
     { label: "Total Workflows", value: "0", icon: GitBranch },
