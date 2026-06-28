@@ -7,33 +7,111 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  email     String   @unique
-  firstName String?
-  lastName  String?
-  imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(cuid())
+  clerkId          String   @unique
+  email            String   @unique
+  firstName        String?
+  lastName         String?
+  imageUrl         String?
+  // Billing
+  plan             Plan     @default(FREE)
+  stripeCustomerId String?  @unique
+  stripeSubId      String?  @unique
+  runsThisMonth    Int      @default(0)
+  runsResetAt      DateTime @default(now())
+  // Onboarding
+  onboardingDone   Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  workflows  Workflow[]
+  workflows   Workflow[]
+  credentials Credential[]
 }
 
+model Credential {
+  id        String   @id @default(cuid())
+  name      String
+  type      String
+  data      Json     @default("{}")
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
 model Workflow {
-  id          String         @id @default(cuid())
+  id              String         @id @default(cuid())
+  name            String
+  description     String?
+  status          WorkflowStatus @default(DRAFT)
+  nodes           Json           @default("[]")
+  edges           Json           @default("[]")
+  webhookId       String?        @unique
+  scheduleCron    String?
+  scheduleEnabled Boolean        @default(false)
+  tags            String[]       @default([])
+  templateId      String?
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  executions  Execution[]
+}
+
+model Execution {
+  id         String          @id @default(cuid())
+  status     ExecutionStatus @default(PENDING)
+  startedAt  DateTime?
+  finishedAt DateTime?
+  workflowId String
+  workflow   Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  createdAt  DateTime        @default(now())
+
+  logs ExecutionLog[]
+}
+
+model ExecutionLog {
+  id          String    @id @default(cuid())
+  nodeId      String
+  nodeType    String
+  message     String
+  status      String
+  output      Json?
+  executionId String
+  execution   Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+}
+
+model WorkflowTemplate {
+  id          String   @id @default(cuid())
+  slug        String   @unique
   name        String
-  description String?
-  status      WorkflowStatus @default(DRAFT)
-  nodes       Json           @default("[]")
-  edges       Json           @default("[]")
-  userId      String
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  description String
+  category    String
+  nodes       Json     @default("[]")
+  edges       Json     @default("[]")
+  usageCount  Int      @default(0)
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }
 
 enum WorkflowStatus {
   DRAFT
   ACTIVE
   INACTIVE
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum Plan {
+  FREE
+  PRO
+  TEAM
 }

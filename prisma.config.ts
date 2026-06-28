@@ -2,6 +2,8 @@ import path from "node:path";
 import { defineConfig } from "prisma/config";
 import { config } from "dotenv";
 
+// Load .env.local first (takes priority), then .env as fallback
+config({ path: ".env.local" });
 config({ path: ".env" });
 
 export default defineConfig({
