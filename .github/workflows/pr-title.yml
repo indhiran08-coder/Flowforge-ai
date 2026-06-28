@@ -1,0 +1,12 @@
+﻿name: PR Title
+on: { pull_request: { types: [opened, edited, synchronize] } }
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const t = context.payload.pull_request.title
+            if(!/^(feat|fix|docs|chore|refactor|test|style|ci|revert)/.test(t))
+              core.setFailed('Use Conventional Commits')
