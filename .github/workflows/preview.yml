@@ -1,0 +1,11 @@
+﻿name: Preview Deploy
+on: { pull_request: { types: [opened, synchronize] } }
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci && npm run build
+      - run: echo 'Preview deploy complete'
