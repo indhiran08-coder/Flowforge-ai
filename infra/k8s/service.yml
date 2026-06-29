@@ -1,0 +1,10 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: flowforge-ai
+spec:
+  selector:
+    app: flowforge-ai
+  ports:
+  - port: 80
+    targetPort: 3000
