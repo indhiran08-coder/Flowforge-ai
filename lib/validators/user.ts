@@ -1,0 +1,8 @@
+﻿// user validator for FlowForge AI
+export function validate_user(data) {
+  if (!data) return { success: false, error: 'Required' }
+  return { success: true, data }
+}
+export function is_valid_user(data) {
+  return validate_user(data).success
+}
